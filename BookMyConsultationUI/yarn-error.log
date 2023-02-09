@@ -1,0 +1,78 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\yarn\bin\yarn.js install --network-timeout=30000
+
+PATH: 
+  C:\Program Files\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;E:\Kafka_Project\kafka_2.12-3.2.1\bin;E:\Kafka_Project\apache-zookeeper-3.8.0-bin\bin;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Users\ashwa\AppData\Roaming\nvm;C:\Program Files\nodejs;F:\maven\apache-maven-3.8.6\bin;C:\Program Files\Git\cmd;C:\Users\ashwa\AppData\Local\Microsoft\WindowsApps;C:\Users\ashwa\AppData\Local\Programs\Microsoft VS Code\bin
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  16.17.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error: https://registry.npmjs.org/@testing-library%2fjest-dom: tunneling socket could not be established, cause=getaddrinfo ENOTFOUND host
+      at ClientRequest.onError (C:\Users\ashwa\AppData\Roaming\nvm\v16.17.0\node_modules\yarn\lib\cli.js:152376:17)
+      at Object.onceWrapper (node:events:628:26)
+      at ClientRequest.emit (node:events:513:28)
+      at Socket.socketErrorListener (node:_http_client:481:9)
+      at Socket.emit (node:events:513:28)
+      at emitErrorNT (node:internal/streams/destroy:157:8)
+      at emitErrorCloseNT (node:internal/streams/destroy:122:3)
+      at processTicksAndRejections (node:internal/process/task_queues:83:21)
+
+npm manifest: 
+  {
+    "name": "book-my-consultation",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {   
+      "@testing-library/jest-dom": "^5.14.1",
+      "@testing-library/react": "^11.2.7",
+      "@testing-library/user-event": "^12.8.3",
+      "react": "^17.0.2",
+      "react-dom": "^17.0.2",
+      "react-hook-form": "^7.12.0",
+      "react-modal": "^3.12.1",
+      "react-router-dom": "^4.3.1",
+      "react-scripts": "4.0.3",
+      "typeface-roboto": "0.0.54",
+      "web-vitals": "^1.1.2",
+      "date-fns": "2.23.0",
+      "@date-io/date-fns": "^1.3.13"
+    },
+    "scripts": {
+      "start": "react-scripts start",
+      "build": "react-scripts build",
+      "test": "react-scripts test",
+      "eject": "react-scripts eject"
+    },
+    "eslintConfig": {
+      "extends": [
+        "react-app",
+        "react-app/jest"
+      ]
+    },
+    "browserslist": {
+      "production": [
+        ">0.2%",
+        "not dead",
+        "not op_mini all"
+      ],
+      "development": [
+        "last 1 chrome version",
+        "last 1 firefox version",
+        "last 1 safari version"
+      ]
+    },
+    "proxy": "http://localhost:8080"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
