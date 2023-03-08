@@ -1,11 +1,11 @@
-/* 
- * Copyright 2017-2018, Redux Software. 
- * 
+/*
+ * Copyright 2017-2018, Redux Software.
+ *
  * File: ResourceConstants.java
  * Date: Sep 28, 2017
  * Author: P7107311
  * URL: www.redux.com
-*/
+ */
 package com.upgrad.bookmyconsultation.constants;
 
 /**

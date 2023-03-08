@@ -26,8 +26,11 @@ public class AppointmentController {
 	
 		//save the appointment details to the database and save the response from the method used
 		//return http response using ResponseEntity
-	
-	
+
+	@PostMapping
+	public ResponseEntity<String> bookAppointment(@RequestBody Appointment appointment) throws  InvalidInputException {
+		return ResponseEntity.ok(appointmentService.appointment(appointment));
+	}
 	
 	
 	//create a get method named getAppointment with return type as ResponseEntity
@@ -36,7 +39,10 @@ public class AppointmentController {
 		//get the appointment details using the appointmentId
 		//save the response
 		//return the response as an http response
-	
+		@GetMapping("/{appointmentId}")
+		public ResponseEntity<Appointment> getAppointment(@PathVariable String appointmentId) {
+			return ResponseEntity.ok(appointmentService.getAppointment(appointmentId));
+		}
 	
 
 }
