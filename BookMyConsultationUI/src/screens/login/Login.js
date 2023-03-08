@@ -1,151 +1,110 @@
-import {Button, Container, makeStyles, TextField} from "../../component/index"
-import {useHistory} from "react-router-dom";
-import React, {useState} from 'react';
-import {useDispatch} from 'react-redux';
-import {environment} from "../../environment";
-import {doLogin} from "../../auth/authDispatcher";
-import {LOGIN} from "../../auth/authStore";
-import {appNotification} from "../../common/notification/app-notification";
-import validator from 'validator';
+import React, { useState } from "react";
+import ErrorPopover from "../../common/ErrorPopover";
 
-const useStyles = makeStyles((theme) => ({
-    paper: {
-        marginTop: theme.spacing(3),
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-    },
-    avatar: {
-        margin: theme.spacing(1),
-        backgroundColor: theme.palette.secondary.main,
-    },
-    form: {
-        width: '100%', // Fix IE 11 issue.
-        marginTop: theme.spacing(1),
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-}));
+import {
+  Button,
+  FormControl,
+  FormHelperText,
+  Input,
+  InputLabel,
+} from "@material-ui/core";
 
-function Login(props) {
+const Login = ({ loginUser, isLogin }) => {
+  const [email, setEmail] = useState("");
+  const [invalidEmailClass, setInvalidEmailClass] = useState("none");
+  const [password, setPassword] = useState("");
 
-    const classes = useStyles();
-    const history = useHistory();
+  // Error Popoup State
+  const [anchorEl, setAnchorEl] = useState(null);
 
-    const dispatch = useDispatch()
+  const setParentAnchorElNull = () => {
+    setAnchorEl(null);
+  };
 
+  const changeEmailHandler = (event) => {
+    setEmail(event.target.value);
+    setInvalidEmailClass("none");
+  };
 
-    const [userName, set_userName] = useState("")
-    const [password, set_password] = useState("")
+  const changePasswordHandler = (event) => {
+    setPassword(event.target.value);
+  };
 
+  const loginHandler = async (e) => {
+    if (e) e.preventDefault();
 
-    async function login(event) {
-        event.preventDefault();
-        console.log("userName", userName)
-
-        if (userName === "" || password === "") {
-            appNotification.showError("Please fill out this field")
-            return;
-        }
-
-        if (!validator.isEmail(userName)) {
-            appNotification.showError("Enter valid Email")
-            return;
-        }
-
-        const payload = {
-            userName,
-            password
-        }
-
-
-        const loginUrl = environment.baseUrl + "/auth/login"
-
-
-        doLogin(payload)
-            .subscribe((response) => {
-
-                //  const currentUser = response.user
-                //const token = response.token
-
-                console.log("Login result token", response.accessToken)
-                console.log("Login result firstName", response.firstName)
-
-
-                dispatch({type: LOGIN, "payload": response});
-
-
-                //   history.push("/profile")
-
-                appNotification.showSuccess("Sucessfully Login");
-
-
-            }, (error => {
-                appNotification.showError(error)
-
-
-            }))
+    // validate data
+    if (email === "") {
+      setAnchorEl(e.currentTarget.children[0]);
+      return;
     }
+    if (password === "") {
+      setAnchorEl(e.currentTarget.children[2]);
+      return;
+    }
+    const emailPattern =
+      /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\\.,;:\s@"]{2,})$/i;
 
-    return (
-        <Container component="main" maxWidth="xs">
+    if (!email.match(emailPattern)) {
+      setInvalidEmailClass("block");
+      return;
+    } else {
+      setInvalidEmailClass("none");
+    }
+    loginUser(email, password);
+  };
 
-            <div className={classes.paper}>
+  return (
+    <div>
+      <form noValidate autoComplete="off" onSubmit={loginHandler}>
+        <FormControl required margin="dense">
+          <InputLabel htmlFor="email">Email</InputLabel>
+          <Input
+            id="email"
+            value={email}
+            type="email"
+            onChange={changeEmailHandler}
+          />
 
-                <form className={classes.form} onSubmit={login} noValidate>
-                    <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
-                        fullWidth
-                        id="userName"
-                        label="Email"
-                        name="userName"
-                        autoComplete="userName"
-                        autoFocus
-                        value={userName}
-                        onInput={e => {
-                            set_userName(e.target.value)
-                        }}
-                    />
-                    <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
-                        fullWidth
-                        name="password"
-                        label="Password"
-                        type="password"
-                        id="password"
-                        value={password}
-                        onInput={e => set_password(e.target.value)}
-                    />
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center"
-                        }}
-                    >
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            className={classes.submit}
-                        >
-                            LOGIN
-                        </Button>
+          {email.length >= 1 && invalidEmailClass === "block" && (
+            <FormHelperText className={invalidEmailClass}>
+              <span className="red">Enter valid Email</span>
+            </FormHelperText>
+          )}
+          <ErrorPopover
+            anchor={anchorEl}
+            setParentAnchorElNull={setParentAnchorElNull}
+          />
+        </FormControl>
+        <br />
+        <FormControl required margin="dense">
+          <InputLabel htmlFor="password">Password</InputLabel>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={changePasswordHandler}
+          />
+          <ErrorPopover
+            anchor={anchorEl}
+            setParentAnchorElNull={setParentAnchorElNull}
+          />
+        </FormControl>
+        <br />
+        <br />
 
-                    </div>
+        {isLogin === true && (
+          <FormControl>
+            <span>Login Successful.</span>
+          </FormControl>
+        )}
+        <br />
+        <Button variant="contained" color="primary" type="submit">
+          LOGIN
+        </Button>
+      </form>
+    </div>
+  );
+};
 
-                </form>
-            </div>
-
-        </Container>
-
-    )
-}
-
-
-export default Login
+export default Login;
