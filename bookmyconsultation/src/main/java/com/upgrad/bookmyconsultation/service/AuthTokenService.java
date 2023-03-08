@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 
 @Service
@@ -39,10 +40,11 @@ public class AuthTokenService {
 
 		final ZonedDateTime now = DateTimeProvider.currentProgramTime();
 
-		final UserAuthToken userAuthToken = userAuthDao.findByUserEmailId(user.getEmailId());
-		final UserAuthTokenVerifier tokenVerifier = new UserAuthTokenVerifier(userAuthToken);
+		final List<UserAuthToken> userAuthToken = userAuthDao.findByUserEmailId(user.getEmailId());
+
+		final UserAuthTokenVerifier tokenVerifier = new UserAuthTokenVerifier(userAuthToken.get(userAuthToken.size()-1));
 		if (tokenVerifier.isActive()) {
-			return userAuthToken;
+			return userAuthToken.get(userAuthToken.size()-1);
 		}
 
 		final JwtTokenProvider tokenProvider = new JwtTokenProvider(user.getPassword());
