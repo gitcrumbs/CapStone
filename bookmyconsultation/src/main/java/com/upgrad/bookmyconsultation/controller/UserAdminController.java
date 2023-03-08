@@ -29,20 +29,26 @@ public class UserAdminController {
 
 	@GetMapping(path = "/{id}")
 	public ResponseEntity<User> getUser(@RequestHeader("authorization") String accessToken,
-	                                    @PathVariable("id") final String userUuid) {
+										@PathVariable("id") final String userUuid) {
 		final User User = userService.getUser(userUuid);
 		return ResponseEntity.ok(User);
 	}
-	
+
 	//create a post method named createUser with return type as ResponseEntity
-		//define the method parameter user of type User. Set it final. Use @RequestBody for mapping.
-		//declare InvalidInputException using throws keyword
-		
-		//register the user
-	
-		//return http response with status set to OK
-	
-	
+	//define the method parameter user of type User. Set it final. Use @RequestBody for mapping.
+	//declare InvalidInputException using throws keyword
+
+	//register the user
+
+	//return http response with status set to OK
+
+
+	@PostMapping(path = "/register")
+	public ResponseEntity<User> createUser(@RequestBody final User user) throws InvalidInputException {
+		final User createdUser = userService.register(user);
+		return ResponseEntity.status(HttpStatus.OK).body(createdUser);
+	}
+
 
 
 	@GetMapping("/{userId}/appointments")

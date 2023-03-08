@@ -36,8 +36,17 @@ public class AppointmentService {
 		//if the appointment exists throw the SlotUnavailableException
 		//save the appointment details to the database
 		//return the appointment id
-	
-	
+
+	public String appointment(Appointment appointment) throws SlotUnavailableException, InvalidInputException {
+		ValidationUtils.validate(appointment);
+		Appointment existingAppointment = appointmentRepository.findByDoctorIdAndTimeSlotAndAppointmentDate(appointment.getDoctorId(), appointment.getTimeSlot(), appointment.getAppointmentDate());
+
+		if (existingAppointment != null) {
+			throw new SlotUnavailableException();
+		}
+		appointmentRepository.save(appointment);
+		return appointment.getAppointmentId();
+	}
 
 
 	//create a method getAppointment of type Appointment with a parameter name appointmentId of type String
