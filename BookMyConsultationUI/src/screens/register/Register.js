@@ -1,222 +1,220 @@
-import {Button, Container, Grid, makeStyles, React, TextField, useHistory, useState} from "../../component/index"
-import {appNotification} from "../../common/notification/app-notification";
-import {doRegisterUser} from "../../auth/authDispatcher";
-import {LOGIN} from "../../auth/authStore";
-import {useDispatch} from "react-redux";
-import validator from "validator";
+import React, { useState } from "react";
+import ErrorPopover from "../../common/ErrorPopover";
+import {
+  FormControl,
+  InputLabel,
+  Input,
+  FormHelperText,
+  Button,
+} from "@material-ui/core";
 
+const Register = ({ baseUrl, loginUser }) => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [invalidEmailClass, setInvalidEmailClass] = useState("none");
+  const [password, setPassword] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [invalidMobileClass, setInvalidMobileClass] = useState("none");
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
 
-const useStyles = makeStyles((theme) => ({
-    paper: {
-        marginTop: theme.spacing(4),
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-    },
+  const setParentAnchorElNull = () => {
+    setAnchorEl(null);
+  };
 
-    formControl: {
-        margin: theme.spacing(1),
-        minWidth: 120,
-    },
-    selectEmpty: {
-        marginTop: theme.spacing(2),
-    },
+  const changeFirstNameHandler = (e) => {
+    setFirstName(e.target.value);
+  };
+  const changeLastNameHandler = (e) => {
+    setLastName(e.target.value);
+  };
+  const changeEmailHandler = (e) => {
+    setEmail(e.target.value);
+    setInvalidEmailClass("none");
+  };
 
-    form: {
-        width: '100%', // Fix IE 11 issue.
-        marginTop: theme.spacing(3),
-    },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
-    },
-}));
+  const changeRegistrationPasswordHandler = (e) => {
+    setPassword(e.target.value);
+  };
 
+  const changeMobileHandler = (e) => {
+    setMobile(e.target.value);
+    setInvalidMobileClass("none");
+  };
 
-function Register() {
+  const registerHandler = async (e) => {
+    if (e) e.preventDefault();
 
-    const classes = useStyles();
-    const history = useHistory();
-    const dispatch = useDispatch()
-    const [open, setOpen] = React.useState(false);
-    const [error_message, set_error_message] = React.useState(false);
-
-
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [emailId, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-
-    const [role, setRole] = useState("USER");
-    const [mobile, setPhoneNumber] = useState("");
-
-    function getRoles(input) {
-
-        const isUser = (input === "USER")
-
-        return {isUser}
+    // Validation
+    if (firstName === "") {
+      setAnchorEl(e.currentTarget.children[0]);
+      return;
+    }
+    if (lastName === "") {
+      setAnchorEl(e.currentTarget.children[3]);
+      return;
+    }
+    if (email === "") {
+      setAnchorEl(e.currentTarget.children[6]);
+      return;
+    }
+    if (password === "") {
+      setAnchorEl(e.currentTarget.children[9]);
+      return;
+    }
+    if (mobile === "") {
+      setAnchorEl(e.currentTarget.children[12]);
+      return;
     }
 
-    function callObservable(subscriberMethod, callback) {
+    const emailPattern =
+      /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\\.,;:\s@"]{2,})$/i;
 
-        subscriberMethod
-            .subscribe((response) => {
+    const mobilePattern = /^[6-9]\d{9}$/i;
 
-                callback(response)
-
-            }, (error => {
-
-                appNotification.showError(error)
-            }))
-
+    if (!email.match(emailPattern)) {
+      setInvalidEmailClass("block");
+      return;
+    } else {
+      setInvalidEmailClass("none");
     }
 
-    function registerUser(payload) {
-
-
-        callObservable(doRegisterUser(payload), (response) => {
-
-            //const currentUser = response.user
-            //const token = response.token
-
-            appNotification.showSuccess("Succesfully Registered")
-            dispatch({type: LOGIN, "payload": response});
-            // history.push("/profile")
-
-        })
-
+    if (!mobile.match(mobilePattern)) {
+      setInvalidMobileClass("block");
+      return;
+    } else {
+      setInvalidMobileClass("none");
     }
 
-    function handleSubmit(event) {
-        event.preventDefault();
+    let data = {
+      emailId: email,
+      firstName: firstName,
+      lastName: lastName,
+      mobile: mobile,
+      password: password,
+    };
 
+    const url = baseUrl + "users/register";
+    try {
+      // debugger;
+      const rawResponse = await fetch(url, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+        body: JSON.stringify(data),
+      });
 
-        if (firstName === "" || lastName === "" || emailId === "" || password === "" || mobile === "") {
-            appNotification.showError("Please fill out this field")
-            return;
-        }
-
-        if (!validator.isEmail(emailId)) {
-            appNotification.showError("Enter valid Email")
-            return;
-        }
-
-        console.log("Before register api", "register")
-
-
-        const payload = {
-            firstName,
-            lastName,
-            emailId,
-            password,
-            mobile
-        }
-
-        // let  {isUser} = getRoles(role)
-
-
-        // if(isUser)
-        registerUser(payload);
-
+      if (rawResponse.ok) {
+        setIsRegistered(true);
+        loginUser(email, password);
+      }
+    } catch (e) {
+      alert(e.message);
     }
+  };
 
-    return (
-        <React.Fragment>
-            <Container component="main" maxWidth="xs">
+  return (
+    <div>
+      <form onSubmit={registerHandler} autoComplete="off" noValidate>
+        <FormControl required>
+          <InputLabel htmlFor="firstname">First Name</InputLabel>
+          <Input
+            type="text"
+            id="firstname"
+            onChange={changeFirstNameHandler}
+            value={firstName}
+          />
+          <ErrorPopover
+            anchor={anchorEl}
+            setParentAnchorElNull={setParentAnchorElNull}
+          />
+        </FormControl>
+        <br />
+        <br />
 
-                <div className={classes.paper}>
+        <FormControl required>
+          <InputLabel htmlFor="lastname">Last Name</InputLabel>
+          <Input
+            type="text"
+            id="lastname"
+            onChange={changeLastNameHandler}
+            value={lastName}
+          />
+          <ErrorPopover
+            anchor={anchorEl}
+            setParentAnchorElNull={setParentAnchorElNull}
+          />
+        </FormControl>
+        <br />
+        <br />
 
+        <FormControl required>
+          <InputLabel htmlFor="email">Email Id</InputLabel>
+          <Input
+            id="email"
+            type="email"
+            onChange={changeEmailHandler}
+            value={email}
+          />
+          {email.length >= 1 && invalidEmailClass === "block" && (
+            <FormHelperText className={invalidEmailClass}>
+              <span className="red">Enter valid Email</span>
+            </FormHelperText>
+          )}
+          <ErrorPopover
+            anchor={anchorEl}
+            setParentAnchorElNull={setParentAnchorElNull}
+          />
+        </FormControl>
+        <br />
+        <br />
 
-                    <form className={classes.form} onSubmit={handleSubmit} noValidate>
+        <FormControl required>
+          <InputLabel htmlFor="registrationPassword">Password</InputLabel>
+          <Input
+            type="password"
+            id="registrationPassword"
+            onChange={changeRegistrationPasswordHandler}
+            value={password}
+          />
+          <ErrorPopover
+            anchor={anchorEl}
+            setParentAnchorElNull={setParentAnchorElNull}
+          />
+        </FormControl>
+        <br />
+        <br />
 
-                        <Grid container spacing={2}>
+        <FormControl required>
+          <InputLabel htmlFor="mobile">Mobile No.</InputLabel>
+          <Input id="mobile" onChange={changeMobileHandler} value={mobile} />
+          {mobile.length >= 1 && invalidMobileClass === "block" && (
+            <FormHelperText className={invalidMobileClass}>
+              <span className="red">Enter valid mobile number</span>
+            </FormHelperText>
+          )}
+          <ErrorPopover
+            anchor={anchorEl}
+            setParentAnchorElNull={setParentAnchorElNull}
+          />
+        </FormControl>
+        <br />
+        <br />
+        {isRegistered === true && (
+          <FormControl>
+            <span>Registration Successful.</span>
+          </FormControl>
+        )}
+        <br />
+        <Button variant="contained" color="primary" type="submit">
+          REGISTER
+        </Button>
+      </form>
+    </div>
+  );
+};
 
-                            <Grid item xs={12}>
-                                <TextField
-                                    name="firstName"
-                                    value={firstName}
-                                    onInput={e => setFirstName(e.target.value)}
-                                    variant="outlined"
-                                    required
-                                    fullWidth
-                                    id="firstName"
-                                    label="First Name"
-                                    autoFocus
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    variant="outlined"
-                                    value={lastName}
-                                    onInput={e => setLastName(e.target.value)}
-                                    required
-                                    fullWidth
-                                    id="lastName"
-                                    label="Last Name"
-                                    name="lastName"
-                                    autoComplete="lname"
-                                />
-                            </Grid>
-
-                            <Grid item xs={12}>
-                                <TextField
-                                    variant="outlined"
-                                    value={emailId}
-                                    onInput={e => setEmail(e.target.value)}
-                                    required
-                                    fullWidth
-                                    id="emailId"
-                                    label="Email Id"
-                                    name="emailId"
-                                    autoComplete="email"
-                                />
-                            </Grid>
-
-                            <Grid item xs={12}>
-                                <TextField
-                                    variant="outlined"
-                                    value={password}
-                                    onInput={e => setPassword(e.target.value)}
-                                    required
-                                    fullWidth
-                                    name="password"
-                                    label="Password"
-                                    type="password"
-                                    id="password"
-                                />
-                            </Grid>
-
-                            <Grid item xs={12}>
-                                <TextField
-                                    variant="outlined"
-                                    value={mobile}
-                                    onInput={e => setPhoneNumber(e.target.value)}
-                                    required
-                                    fullWidth
-                                    name="mobile"
-                                    label="Mobile No."
-                                    type="number"
-                                    id="mobile"
-                                />
-                            </Grid>
-
-                        </Grid>
-                        <div style={{display: "flex", justifyContent: "center", alignItems: "center"}}>
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                color="primary"
-                                className={classes.submit}
-                            >
-                                Register
-                            </Button>
-                        </div>
-                    </form>
-                </div>
-
-            </Container>
-        </React.Fragment>
-
-    )
-}
-
-export default Register
+export default Register;

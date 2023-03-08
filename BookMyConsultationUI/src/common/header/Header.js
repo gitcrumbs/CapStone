@@ -1,147 +1,179 @@
-import {AppBar, Button, Link, React, Toolbar, Typography, useDispatch, useHistory, useSelector,}
-    from "../../component/index"
-import {makeStyles} from '@material-ui/core/styles';
-import app_logo from "../../assets/logo.jpeg"
-import {useLocation} from 'react-router-dom';
-import {doLogout, setAuthToken} from "../../auth/authDispatcher";
-import AuthenticationDialog from "../../screens/authentication/AuthenticationDialog";
-import {LOGIN, LOGOUT} from "../../auth/authStore";
-import {appNotification} from "../notification/app-notification";
+import React, { useState, useEffect } from "react";
+import "./Header.css";
+import logo from "../../assets/logo.jpeg";
+import Modal from "react-modal";
+import {
+  Button,
+  Tabs,
+  Tab,
+  CardHeader,
+  CardContent,
+  Card,
+} from "@material-ui/core";
+import TabContainer from "../tabContainer/TabContainer";
+import Login from "../../screens/login/Login";
+import Register from "../../screens/register/Register";
 
+Modal.setAppElement(document.getElementById("root"));
 
-const useStyles = makeStyles((theme) => ({
+const customStyles = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    padding: "0px",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+  },
+};
 
-    '@global': {
-        body: {
-            backgroundColor: '#e6e6e6'
+const Header = ({ baseUrl, isLogin, setIsLogin }) => {
+  const [openModal, setOpenModal] = useState(false);
+  const [value, setValue] = useState(0);
+
+  // Toggle Modal Status
+  const toggleModalHandler = () => {
+    setOpenModal(!openModal);
+  };
+
+  // Switch modal Tabs
+  const tabSwitchHandler = (event, value) => {
+    setValue(value);
+  };
+
+  // Logout User
+  const logoutHandler = async () => {
+    const url = baseUrl + "auth/logout";
+    const params = sessionStorage.getItem("accessToken");
+
+    try {
+      const rawResponse = await fetch(url, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: `Bearer ${params}`,
         },
-        ul: {
-            margin: 0,
-            padding: 0,
-            listStyle: 'none',
-        },
-    },
-    appBar: {
-        borderBottom: `3px solid ${theme.palette.divider}`,
-        backgroundColor: "#800080",
-        height: "70px",
-        padding: "11px"
-    },
-    toolbar: {
-        flexWrap: 'wrap',
-    },
-    toolbarTitle: {
-        flexGrow: 1,
-        color: "#ffffff"
-    },
-    logo: {
-        backgroundColor: "#ff7f7f",
-        height: "35px"
-    },
-    link: {
-        margin: theme.spacing(1, 1.5),
-    },
-    activeLink: {
-        margin: theme.spacing(1, 1.5),
-        backgroundColor: "#3f51b5",
-        color: "#ffffff",
-        '&:hover': {
-            color: "#3f51b5",
-            backgroundColor: "#ffffff",
-            border: '1px solid #3f51b5'
-        },
-    },
+      });
 
+      if (rawResponse.ok) {
+        sessionStorage.removeItem("user-details");
+        sessionStorage.removeItem("userId");
+        sessionStorage.removeItem("accessToken");
+        setIsLogin(false);
 
-}));
-
-
-function Header(props) {
-
-    const dispatch = useDispatch()
-    const history = useHistory();
-    const location = useLocation();
-
-    async function logout() {
-
-        console.log("logout click", "logout")
-        doLogout(dispatch, history)
-            .subscribe((response) => {
-
-                console.log("logout click fallback", "logout fallback")
-                dispatch({type: LOGOUT});
-
-                history.push("/")
-
-                appNotification.showSuccess("Sucessfully Logout");
-
-
-            }, (error => {
-                appNotification.showError(error)
-
-
-            }))
-
+      } else {
+        const error = new Error();
+        error.message = "Something went wrong.";
+        throw error;
+      }
+    } catch (e) {
+      alert(e.message);
     }
+  };
 
 
-    const classes = useStyles();
-    const {user, token, isLoggedIn, roles} = useSelector(state => state.auth);
-
-    let {isUser,} = roles
-
-    const isNotLoggedIn = !isLoggedIn
+  const loginUser = async (email, password) => {
+    const url = baseUrl + "auth/login";
 
 
-    const currentPath = location.pathname
+    const params = window.btoa(email + ":" + password);
 
-    //Dialog
-    const [open, setOpen] = React.useState(false);
-    const [selectedValue, setSelectedValue] = React.useState("");
+    try {
+      const rawResponse = await fetch(url, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json;charset=UTF-8",
+          Authorization: `Basic ${params}`,
+        },
+      });
 
-    const handleClickOpen = () => {
-        setOpen(true);
-    };
+      if (rawResponse.ok) {
+        const response = await rawResponse.json();
 
-    const handleClose = (value) => {
-        setOpen(false);
-        // setSelectedValue(value);
-    };
+        window.sessionStorage.setItem("user-details", JSON.stringify(response));
+        window.sessionStorage.setItem("userId", JSON.stringify(response.id));
+        window.sessionStorage.setItem("accessToken", response.accessToken);
+        setIsLogin(true);
+        setTimeout(function () {
+          toggleModalHandler();
+        }, 2000);
+      } else {
+        const error = new Error();
+        error.message = "Something went wrong.";
+        throw error;
+      }
+    } catch (e) {
+      alert(`${e.message} Please enter correct details.`);
+    }
+  };
 
-    //
+  // Get Login state at render
+  useEffect(() => {
+    const isLoggedIn =
+      sessionStorage.getItem("accessToken") == null ? false : true;
+    setIsLogin(isLoggedIn);
+  }, [setIsLogin]);
 
+  return (
+    <div>
+      <header className="header">
+        <span>
+          <img src={logo} className="logo" alt="logo" />
+          <span className="brandTitle">Doctor Finder</span>
+        </span>
 
-    return (
-        <React.Fragment>
+        <div className="login-button">
+          {/* Display login/logout button based on Auth status */}
+          {!isLogin === true ? (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={toggleModalHandler}
+            >
+              Login
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={logoutHandler}
+            >
+              Logout
+            </Button>
+          )}
+        </div>
+      </header>
+      <Modal
+        ariaHideApp={false}
+        isOpen={openModal}
+        onRequestClose={toggleModalHandler}
+        style={customStyles}
+      >
+        <Card>
+          <CardHeader className="cardHeader" title="Authentication" />
+          <CardContent>
+            <Tabs value={value} onChange={tabSwitchHandler}>
+              <Tab label="Login" />
+              <Tab label="Register" />
+            </Tabs>
+            <TabContainer>
+              {value === 0 && <Login loginUser={loginUser} isLogin={isLogin} />}
+              {value === 1 && (
+                <Register
+                  baseUrl={baseUrl}
+                  toggleModalHandler={toggleModalHandler}
+                  loginUser={loginUser}
+                />
+              )}
+            </TabContainer>
+          </CardContent>
+        </Card>
+      </Modal>
+    </div>
+  );
+};
 
-            <AppBar position="static" color="default" elevation={0} className={classes.appBar}>
-                <Toolbar className={classes.toolbar}>
-
-                    <img src={app_logo} alt="Doctor Finder" className={classes.logo}/>
-
-                    <Typography variant="h6" noWrap className={classes.toolbarTitle}>
-                        &nbsp;
-                        Doctor Finder
-                    </Typography>
-
-
-                    {(isLoggedIn) ?
-                        <Button id="btnlogout" onClick={logout} color="secondary" variant="contained"
-                                className={classes.link}>
-                            Logout
-                        </Button> : <div>
-                            <Button color="primary" variant="contained" onClick={handleClickOpen}>
-                                Login
-                            </Button>
-                            <AuthenticationDialog open={open} onClose={handleClose}/>
-                        </div>
-                    }
-                </Toolbar>
-            </AppBar>
-        </React.Fragment>
-
-    )
-}
-
-
-export default Header
+export default Header;
