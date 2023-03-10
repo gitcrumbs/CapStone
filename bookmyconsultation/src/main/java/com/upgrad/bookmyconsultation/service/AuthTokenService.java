@@ -41,8 +41,12 @@ public class AuthTokenService {
 		final ZonedDateTime now = DateTimeProvider.currentProgramTime();
 
 		final List<UserAuthToken> userAuthToken = userAuthDao.findByUserEmailId(user.getEmailId());
+		UserAuthToken tokenExtract = null;
+		if(userAuthToken.size()>0){
+			tokenExtract= userAuthToken.get(userAuthToken.size()-1);
+		}
 
-		final UserAuthTokenVerifier tokenVerifier = new UserAuthTokenVerifier(userAuthToken.get(userAuthToken.size()-1));
+		final UserAuthTokenVerifier tokenVerifier = new UserAuthTokenVerifier(tokenExtract);
 		if (tokenVerifier.isActive()) {
 			return userAuthToken.get(userAuthToken.size()-1);
 		}
